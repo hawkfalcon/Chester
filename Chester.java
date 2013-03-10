@@ -59,6 +59,9 @@ public class Chester extends ListenerAdapter implements Listener {
 		if(message.startsWith("!join")){
 			event.getBot().joinChannel(args[1]);
     	}
+    	    else if(message.startsWith("!leave")){
+			event.getBot().partChannel(args[1], "I was asked to leave");
+    	}
 		else {
 		hal.add(message);
 			try {
