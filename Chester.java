@@ -14,6 +14,7 @@ import org.pircbotx.Channel;
 import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.Listener;
 import org.pircbotx.hooks.ListenerAdapter;
+import org.pircbotx.hooks.events.JoinEvent;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
 
@@ -108,6 +109,11 @@ public class Chester extends ListenerAdapter implements Listener {
 			}
 		}
 	}
+	
+	public void onJoin(JoinEvent event) {
+		event.getBot().sendMessage(event.getChannel(), truncate((hal.getSentence()), 300));
+	}
+	
 	//truncator
 	public static String truncate(String string, int length)
 	{
