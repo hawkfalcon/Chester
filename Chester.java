@@ -16,8 +16,12 @@ import org.pircbotx.hooks.Listener;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
+import org.pircbotx.hooks.events.ConnectEvent;
 
 public class Chester extends ListenerAdapter implements Listener {
+	public void onConnect(ConnectEvent event) {
+    event.getBot().identify("chester");
+	}
 
 	private static String BRAIN = "brain.ser";
 	JMegaHal hal = new JMegaHal();
@@ -92,7 +96,7 @@ public class Chester extends ListenerAdapter implements Listener {
 			} catch(InterruptedException ex) {
 				Thread.currentThread().interrupt();
 			}
-			event.getBot().sendMessage(event.getChannel(), truncate((hal.getSentence()), 300));
+			event.getBot().sendMessage(event.getChannel(), truncate((hal.getSentence()), 300).replaceAll("<.*?>", "").replaceAll("\\[.*?\\]", ""));
 		} else {
 			// add the new data to the brain
 			hal.add(message);
@@ -133,5 +137,5 @@ public class Chester extends ListenerAdapter implements Listener {
 		bot.joinChannel(config.getProperty("channel", "#hawkfalcon"));
 		bot.getListenerManager().addListener(new Chester());
 
-		;	}
+		}
 }
