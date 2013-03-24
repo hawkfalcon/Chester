@@ -17,11 +17,15 @@ import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
 import org.pircbotx.hooks.events.ConnectEvent;
+import org.pircbotx.hooks.events.JoinEvent;
 
 public class Chester extends ListenerAdapter implements Listener {
 	public void onConnect(ConnectEvent event) {
     event.getBot().identify("chester");
 	}
+	public void onJoin(JoinEvent event) {
+	event.getBot().sendMessage(event.getChannel(), truncate((hal.getSentence()), 300).replaceAll("<.*?>", "").replaceAll("\\[.*?\\]", ""));
+    }
 
 	private static String BRAIN = "brain.ser";
 	JMegaHal hal = new JMegaHal();
