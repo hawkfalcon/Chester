@@ -21,7 +21,7 @@ import org.pircbotx.hooks.events.JoinEvent;
 
 public class Chester extends ListenerAdapter implements Listener {
 	public void onConnect(ConnectEvent event) {
-    event.getBot().identify("chester");
+	    event.getBot().identify("chester_");
 	}
 	public void onJoin(JoinEvent event) {
 	event.getBot().sendMessage(event.getChannel(), truncate((hal.getSentence()), 300).replaceAll("<.*?>", "").replaceAll("\\[.*?\\]", ""));
