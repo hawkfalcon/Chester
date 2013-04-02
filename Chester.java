@@ -1,145 +1,104 @@
-/* Uses PircBotX, JMegaHal, and is based off of ChatBackBot*/
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
-import java.util.Properties;
 
 import org.jibble.jmegahal.JMegaHal;
 import org.pircbotx.Channel;
 import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.Listener;
 import org.pircbotx.hooks.ListenerAdapter;
+import org.pircbotx.hooks.events.ConnectEvent;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
-import org.pircbotx.hooks.events.ConnectEvent;
-import org.pircbotx.hooks.events.JoinEvent;
 
 public class Chester extends ListenerAdapter implements Listener {
+    public static void main(String[] args) throws Exception {
+		PircBotX bot = new PircBotX();
+		bot.setAutoNickChange(true);
+		bot.setName("Chester");
+		bot.setLogin("Chester");
+		bot.setVersion("Chester"); 
+		bot.setFinger("Get your hand off of me!");
+		bot.setVerbose(true);
+		bot.connect("irc.esper.net");
+		bot.joinChannel("#hawkfalcon");
+		bot.getListenerManager().addListener(new Chester());
+    }	
+    
 	public void onConnect(ConnectEvent event) {
-    event.getBot().identify("chester");
+    event.getBot().identify("chester_");
 	}
-	public void onJoin(JoinEvent event) {
-	event.getBot().sendMessage(event.getChannel(), truncate((hal.getSentence()), 300).replaceAll("<.*?>", "").replaceAll("\\[.*?\\]", ""));
-    }
-
-	private static String BRAIN = "brain.ser";
 	JMegaHal hal = new JMegaHal();
-
 	public Chester() {
-		// load any previously saved brain
-		ObjectInputStream in = null;
 		try {
-			File file = new File(BRAIN);
-			in = new ObjectInputStream(new FileInputStream(file));
-			hal = (JMegaHal) in.readObject();
+		FileReader fr = new FileReader("chester.brain");
+        BufferedReader br = new BufferedReader(fr);
+        String line = null;
+        while ((line = br.readLine()) != null) {
+            hal.add(line);
+        }
+        br.close();
 		} catch (FileNotFoundException e) {
 			firstRun();
 		} catch (IOException e) {
 			firstRun();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} finally {
-			if(in != null) {
-				try {
-					in.close();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-			}
 		}
 	}
 
 	private void firstRun() {
-		System.err.println("Couldn't find the brain ("+ BRAIN +") so will use default data");
+		System.err.println("Couldn't find the brain chester.brain so will use default data");
 		hal.add("Hello World");
 		hal.add("Can I have some coffee?");
 		hal.add("Please slap me");
 	}
 
 	public void onPrivateMessage(PrivateMessageEvent event) {
-		String delims = "[ ]+";
-		String[] args = event.getMessage().split(delims);
+		String[] args = event.getMessage().split("[ ]+");
 		String message = event.getMessage();
 		Channel channel = event.getBot().getChannel(args[1]);
 		if(message.startsWith("!join")){
 			event.getBot().joinChannel(args[1]);
 		}
 		else if(message.startsWith("!leave")){
-			event.getBot().sendAction(channel, "was asked to leave");
 			event.getBot().partChannel(channel, "I was asked to leave");
 		}
 		else {
 			hal.add(message);
-			try {
-				// save the new data
-				ObjectOutput out = new ObjectOutputStream(new FileOutputStream(BRAIN));
-				out.writeObject(hal);
-				out.close();
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			write(message);
 		}
 	}
 
 	public void onMessage(MessageEvent event) throws Exception{
-		String delims = "[ ]+";
-		String[] args = event.getMessage().split(delims);
 		String message = event.getMessage();
-
-		// if the bot name is used, get a reply
-		if(message.toLowerCase().contains("chester")) {
-			try {
-				Thread.sleep(1000);
-			} catch(InterruptedException ex) {
-				Thread.currentThread().interrupt();
-			}
-			event.getBot().sendMessage(event.getChannel(), truncate((hal.getSentence()), 300).replaceAll("<.*?>", "").replaceAll("\\[.*?\\]", ""));
+		if(message.toLowerCase().contains("chester") && !event.getChannel().getName().toLowerCase().equals("#bukkitdev")) {
+			event.getBot().sendMessage(event.getChannel(), clean(hal.getSentence()));
 		} else {
-			// add the new data to the brain
 			hal.add(message);
-			try {
-				// save the new data
-				ObjectOutput out = new ObjectOutputStream(new FileOutputStream(BRAIN));
-				out.writeObject(hal);
-				out.close();
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+            write(message);
 		}
 	}
-	//truncator
-	public static String truncate(String string, int length)
-	{
-		if (string != null && string.length() > length) 
-			string = string.substring(0, length);
-		return string;  
-		
+	public static String clean(String string){
+		if (string != null && string.length() > 300) {
+			string = string.substring(0, 300);
+	     }
+		String newstring = string.replaceAll("<.*?>", "").replaceAll("\\[.*?\\]", "");
+		return newstring;  
 	}
+	
+	public static void write(String sentence) {
+        try {
+            FileWriter fw = new FileWriter("chester.brain", true);
+            BufferedWriter bufferedWriter = new BufferedWriter(fw);
+            bufferedWriter.append(sentence);
+            bufferedWriter.newLine();
+            bufferedWriter.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
 
-	public static void main(String[] args) throws Exception {
-		Properties config = new Properties();
-		try {
-			config.load(new FileInputStream("chester.properties"));
-		} catch (IOException ioex) {
-			System.err.println("Error loading config file: chester.properties");
-			System.exit(0);
-		}
-		PircBotX bot = new PircBotX();
-		bot.setAutoNickChange(true);
-		bot.setName(config.getProperty("nick", "Chester"));
-		bot.setVerbose(true);
-		bot.connect(config.getProperty("server", "irc.esper.net"));
-		bot.joinChannel(config.getProperty("channel", "#hawkfalcon"));
-		bot.getListenerManager().addListener(new Chester());
-
-		}
+	
 }
