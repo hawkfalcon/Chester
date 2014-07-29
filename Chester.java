@@ -16,37 +16,46 @@ public class Chester extends ListenerAdapter implements Listener {
         bot.setAutoNickChange(true);
         bot.setName("Chester");
         bot.setLogin("Chester");
-        bot.setVersion("Chester https://github.com/hawkfalcon/Chester");
+        bot.setVersion("Chester");
         bot.setFinger("Get your hand off of me!");
         bot.setVerbose(true);
-        bot.connect("chaos.esper.net");
+        bot.connect("nova.esper.net");
         bot.joinChannel("#hawkfalcon");
         bot.joinChannel("#drtshock");
+        bot.sendMessage("NickServ", "withheld");
         bot.getListenerManager().addListener(new Chester());
     }
 
     JMegaHal hal = new JMegaHal();
 
-	public static String silence(String string) {
-		if (string == null || string.length() < 4) {
-			return string;
-		} else {
-			return insertPeriodically(string, String.valueOf((char) 0x200b), 2);
-		}
-	}
+    public static String silence(String string) {
+        if (string == null || string.length() < 3) {
+            return string;
+        } else {
+            return insertPeriodically(string, String.valueOf((char) 0x200b), 2);
+        }
+    }
 
-	public static String insertPeriodically(String text, String insert, int period) {
-		StringBuilder builder = new StringBuilder(text.length() + insert.length() * (text.length()/period)+1);
-		int index = 0;
-		String prefix = "";
-		while (index < text.length()) {
-			builder.append(prefix);
-			prefix = insert;
-			builder.append(text.substring(index, Math.min(index + period, text.length())));
-			index += period;
-		}
-		return builder.toString();
-	}
+public static String insertPeriodically(
+    String text, String insert, int period)
+{
+    StringBuilder builder = new StringBuilder(
+         text.length() + insert.length() * (text.length()/period)+1);
+
+    int index = 0;
+    String prefix = "";
+    while (index < text.length())
+    {
+        // Don't put the insert in the very first iteration.
+        // This is easier than appending it *after* each substring
+        builder.append(prefix);
+        prefix = insert;
+        builder.append(text.substring(index,
+            Math.min(index + period, text.length())));
+        index += period;
+    }
+    return builder.toString();
+}
 
     public Chester() {
         try {
@@ -117,5 +126,6 @@ public class Chester extends ListenerAdapter implements Listener {
             ex.printStackTrace();
         }
     }
+
 
 }
