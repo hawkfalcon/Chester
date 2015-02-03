@@ -1,30 +1,24 @@
 package com.hawkfalcon.chester;
 
-import com.hawkfalcon.jmegahal.JMegaHal;
+import org.jibble.jmegahal.JMegaHal;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.ListenerAdapter;
+import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
-import org.pircbotx.hooks.types.GenericMessageEvent;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 public class Chester extends ListenerAdapter {
     JMegaHal hal = new JMegaHal();
-
-    @SuppressWarnings("unchecked")
-    public void main(String[] args) throws Exception {
-        Configuration config = new Configuration.Builder()
-                .setName("Chester")
-                .setLogin("Chester")
-                .setAutoNickChange(true)
-                .setServer("irc.esper.net", 6667)
-                .addAutoJoinChannel("#hawkfalcon")
-                .buildConfiguration();
-        PircBotX bot = new PircBotX(config);
-        bot.startBot();
-    }
+    String ping = "Chester";
 
     public Chester() {
         try (BufferedReader br = new BufferedReader(new FileReader("chester.brain"))) {
@@ -34,6 +28,20 @@ public class Chester extends ListenerAdapter {
         } catch (Exception e) {
             firstRun();
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void main(String[] args) throws Exception {
+        Configuration config = new Configuration.Builder()
+                .setName("Chester")
+                .setLogin("Chester")
+                .setAutoNickChange(true)
+                .setServer("irc.esper.net", 6667)
+                .addAutoJoinChannel("#hawkfalcon")
+                .addListener(new Chester())
+                .buildConfiguration();
+        PircBotX bot = new PircBotX(config);
+        bot.startBot();
     }
 
     private void firstRun() {
@@ -50,16 +58,21 @@ public class Chester extends ListenerAdapter {
         }
     }
 
-    @Override
-    public void onGenericMessage(GenericMessageEvent event) throws Exception {
+    public void onMessage(MessageEvent event) throws Exception {
         String message = event.getMessage();
-        String words[] = message.split(" ");
-        String seed = words[new Random().nextInt(words.length)];
-        if (message.toLowerCase().contains("chester")) {
-            event.respond(dePing(hal.getSentence(seed), 2));
+        if (message.toLowerCase().contains(ping)) {
+            event.getChannel().send().message(dePing(hal.getSentence(getSeed(message)), 2));
         } else {
             addToBrain(message);
         }
+    }
+
+    public String getSeed(String message) {
+        List<String> words = new ArrayList<>(Arrays.asList(message.split(" ")));
+        words.remove(ping);
+        words.removeIf(word -> word.length() < 4);
+        if (words.isEmpty()) return null;
+        return words.get(new Random().nextInt(words.size()));
     }
 
     public void addToBrain(String rawmessage) {
@@ -94,7 +107,7 @@ public class Chester extends ListenerAdapter {
     }
 
     public void write(String sentence) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter("chester.brain"))) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter("chester.brain", true))) {
             bw.append(sentence);
             bw.newLine();
         } catch (Exception e) {
