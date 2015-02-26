@@ -38,6 +38,7 @@ public class Chester extends ListenerAdapter {
                 .setAutoNickChange(true)
                 .setServer("irc.esper.net", 6667)
                 .addAutoJoinChannel("#hawkfalcon")
+                .addAutoJoinChannel("#drtshock")
                 .addListener(new Chester())
                 .buildConfiguration();
         PircBotX bot = new PircBotX(config);
